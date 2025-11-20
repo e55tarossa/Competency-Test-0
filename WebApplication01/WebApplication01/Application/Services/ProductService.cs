@@ -275,10 +275,25 @@ public class ProductService : IProductService
     {
         try
         {
+            // First, delete existing related entities to make EF not confuse with concurrency
+            var existingCategories = await _context.ProductCategories
+                .Where(pc => pc.ProductId == id)
+                .ToListAsync();
+            
+            var existingAttributes = await _context.ProductAttributes
+                .Where(pa => pa.ProductId == id)
+                .ToListAsync();
+            
+            var existingImages = await _context.ProductImages
+                .Where(pi => pi.ProductId == id)
+                .ToListAsync();
+            
+            _context.ProductCategories.RemoveRange(existingCategories);
+            _context.ProductAttributes.RemoveRange(existingAttributes);
+            _context.ProductImages.RemoveRange(existingImages);
+            
+            // Now get the product (without related entities since we deleted them)
             var product = await _context.Products
-                .Include(p => p.ProductCategories)
-                .Include(p => p.ProductAttributes)
-                .Include(p => p.Images)
                 .FirstOrDefaultAsync(p => p.Id == id);
             
             if (product == null)
@@ -292,45 +307,39 @@ public class ProductService : IProductService
             product.BasePrice = request.BasePrice;
             product.IsActive = request.IsActive;
             
-            // Update categories
-            product.ProductCategories.Clear();
-            foreach (var categoryId in request.CategoryIds)
+            // Add new categories
+            var newCategories = request.CategoryIds.Select(categoryId => new ProductCategory
             {
-                product.ProductCategories.Add(new ProductCategory
-                {
-                    ProductId = product.Id,
-                    CategoryId = categoryId,
-                    IsPrimary = categoryId == request.PrimaryCategoryId
-                });
-            }
+                ProductId = product.Id,
+                CategoryId = categoryId,
+                IsPrimary = categoryId == request.PrimaryCategoryId
+            }).ToList();
             
-            // Update attributes
-            product.ProductAttributes.Clear();
-            foreach (var attr in request.Attributes)
-            {
-                product.ProductAttributes.Add(new ProductAttribute
-                {
-                    Id = Guid.NewGuid(),
-                    ProductId = product.Id,
-                    AttributeId = attr.AttributeId,
-                    Value = attr.Value
-                });
-            }
+            await _context.ProductCategories.AddRangeAsync(newCategories);
             
-            // Update images
-            product.Images.Clear();
-            foreach (var img in request.Images)
+            // Add new attributes
+            var newAttributes = request.Attributes.Select(attr => new ProductAttribute
             {
-                product.Images.Add(new ProductImage
-                {
-                    Id = Guid.NewGuid(),
-                    ProductId = product.Id,
-                    ImageUrl = img.ImageUrl,
-                    AltText = img.AltText,
-                    DisplayOrder = img.DisplayOrder,
-                    IsPrimary = img.IsPrimary
-                });
-            }
+                Id = Guid.NewGuid(),
+                ProductId = product.Id,
+                AttributeId = attr.AttributeId,
+                Value = attr.Value
+            }).ToList();
+            
+            await _context.ProductAttributes.AddRangeAsync(newAttributes);
+            
+            // Add new images
+            var newImages = request.Images.Select(img => new ProductImage
+            {
+                Id = Guid.NewGuid(),
+                ProductId = product.Id,
+                ImageUrl = img.ImageUrl,
+                AltText = img.AltText,
+                DisplayOrder = img.DisplayOrder,
+                IsPrimary = img.IsPrimary
+            }).ToList();
+            
+            await _context.ProductImages.AddRangeAsync(newImages);
             
             await _context.SaveChangesAsync();
             
@@ -340,6 +349,7 @@ public class ProductService : IProductService
             
             // Reload and return
             var updatedProduct = await _context.Products
+                .AsNoTracking()
                 .Include(p => p.ProductCategories)
                     .ThenInclude(pc => pc.Category)
                 .Include(p => p.ProductAttributes)
