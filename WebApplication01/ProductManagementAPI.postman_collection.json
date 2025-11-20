@@ -1,0 +1,1226 @@
+{
+    "info": {
+        "_postman_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+        "name": "Product Management API",
+        "description": "Complete Postman collection for testing the Product Management API.\n\n## Features\n- Product CRUD operations\n- Product Variant management\n- Stock management\n- Search and filtering\n- Validation testing\n- Concurrency testing\n\n## Setup\n1. Import this collection into Postman\n2. Update the `baseUrl` variable with your API URL\n3. Run the application: `dotnet run`\n4. Start testing!\n\n## Variables\n- `baseUrl`: Your API base URL (default: https://localhost:7001)\n- `productId`: Stores created product ID for subsequent requests\n- `variantId`: Stores created variant ID\n- `categoryId`: Stores category ID from seeded data",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "Products",
+            "item": [
+                {
+                    "name": "List Products",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Status code is 200\", function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "pm.test(\"Response has success field\", function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.success).to.eql(true);",
+                                    "});",
+                                    "",
+                                    "pm.test(\"Response has data array\", function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.data).to.be.an('array');",
+                                    "});",
+                                    "",
+                                    "pm.test(\"Response has metadata\", function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.metadata).to.exist;",
+                                    "    pm.expect(jsonData.metadata.page).to.exist;",
+                                    "    pm.expect(jsonData.metadata.pageSize).to.exist;",
+                                    "    pm.expect(jsonData.metadata.totalCount).to.exist;",
+                                    "});",
+                                    "",
+                                    "// Store first product ID and category ID for later use",
+                                    "if (pm.response.json().data.length > 0) {",
+                                    "    pm.collectionVariables.set(\"productId\", pm.response.json().data[0].id);",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/products?page=1&pageSize=20",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "products"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "1"
+                                },
+                                {
+                                    "key": "pageSize",
+                                    "value": "20"
+                                },
+                                {
+                                    "key": "searchTerm",
+                                    "value": "shirt",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "categoryId",
+                                    "value": "{{categoryId}}",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "isActive",
+                                    "value": "true",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "minPrice",
+                                    "value": "20",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "maxPrice",
+                                    "value": "100",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "sortBy",
+                                    "value": "name",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "sortDescending",
+                                    "value": "false",
+                                    "disabled": true
+                                }
+                            ]
+                        },
+                        "description": "Get paginated list of products with optional filtering and sorting.\n\n**Query Parameters:**\n- `page`: Page number (default: 1)\n- `pageSize`: Items per page (default: 20, max: 100)\n- `searchTerm`: Search in name, SKU, description\n- `categoryId`: Filter by category\n- `isActive`: Filter by active status\n- `minPrice`: Minimum price filter\n- `maxPrice`: Maximum price filter\n- `sortBy`: Sort field (name, price, sku, createdAt)\n- `sortDescending`: Sort direction (true/false)"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Product by ID",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Status code is 200\", function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "pm.test(\"Response has product data\", function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.success).to.eql(true);",
+                                    "    pm.expect(jsonData.data).to.exist;",
+                                    "    pm.expect(jsonData.data.id).to.exist;",
+                                    "    pm.expect(jsonData.data.sku).to.exist;",
+                                    "    pm.expect(jsonData.data.name).to.exist;",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/products/{{productId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "products",
+                                "{{productId}}"
+                            ]
+                        },
+                        "description": "Get detailed information about a specific product including variants, categories, attributes, and images."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Product by SKU",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Status code is 200\", function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "pm.test(\"Product SKU matches\", function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.data.sku).to.eql(\"SHIRT-COTTON-001\");",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/products/sku/SHIRT-COTTON-001",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "products",
+                                "sku",
+                                "SHIRT-COTTON-001"
+                            ]
+                        },
+                        "description": "Get product by its unique SKU identifier."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Create Product",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Status code is 201\", function () {",
+                                    "    pm.response.to.have.status(201);",
+                                    "});",
+                                    "",
+                                    "pm.test(\"Product created successfully\", function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.success).to.eql(true);",
+                                    "    pm.expect(jsonData.data.id).to.exist;",
+                                    "    ",
+                                    "    // Store the new product ID",
+                                    "    pm.collectionVariables.set(\"newProductId\", jsonData.data.id);",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        },
+                        {
+                            "listen": "prerequest",
+                            "script": {
+                                "exec": [
+                                    "// Generate unique SKU",
+                                    "const timestamp = Date.now();",
+                                    "pm.collectionVariables.set(\"uniqueSKU\", `TEST-PRODUCT-${timestamp}`);"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"sku\": \"{{uniqueSKU}}\",\n  \"name\": \"Test Product - Winter Jacket\",\n  \"description\": \"Warm and comfortable winter jacket perfect for cold weather\",\n  \"basePrice\": 149.99,\n  \"isActive\": true,\n  \"categoryIds\": [],\n  \"attributes\": [],\n  \"images\": [\n    {\n      \"imageUrl\": \"https://via.placeholder.com/500x500?text=Winter+Jacket\",\n      \"altText\": \"Winter Jacket\",\n      \"displayOrder\": 0,\n      \"isPrimary\": true\n    }\n  ]\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/products",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "products"
+                            ]
+                        },
+                        "description": "Create a new product.\n\n**Note:** You need to get a valid categoryId first by running \"List Products\" and copying a category ID from the response.\n\n**Required fields:**\n- sku (unique, 3-50 chars, alphanumeric)\n- name (3-200 chars)\n- basePrice (> 0)\n- categoryIds (at least one)"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Update Product",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Status code is 200\", function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "pm.test(\"Product updated successfully\", function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.success).to.eql(true);",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"Test Product - Winter Jacket (Updated)\",\n  \"description\": \"Warm and comfortable winter jacket - NOW ON SALE!\",\n  \"basePrice\": 129.99,\n  \"isActive\": true,\n  \"categoryIds\": [],\n  \"attributes\": [],\n  \"images\": [\n    {\n      \"imageUrl\": \"https://via.placeholder.com/500x500?text=Winter+Jacket+SALE\",\n      \"altText\": \"Winter Jacket on Sale\",\n      \"displayOrder\": 0,\n      \"isPrimary\": true\n    }\n  ]\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/products/{{newProductId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "products",
+                                "{{newProductId}}"
+                            ]
+                        },
+                        "description": "Update an existing product. Uses optimistic concurrency control - will return 409 Conflict if the product was modified by another user."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Delete Product",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Status code is 200\", function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "pm.test(\"Product deleted successfully\", function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.success).to.eql(true);",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "DELETE",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/products/{{newProductId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "products",
+                                "{{newProductId}}"
+                            ]
+                        },
+                        "description": "Delete a product. This will cascade delete all variants, attributes, and images."
+                    },
+                    "response": []
+                }
+            ],
+            "description": "Product management endpoints for CRUD operations."
+        },
+        {
+            "name": "Product Variants",
+            "item": [
+                {
+                    "name": "Get Product Variants",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Status code is 200\", function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "pm.test(\"Response has variants array\", function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.success).to.eql(true);",
+                                    "    pm.expect(jsonData.data).to.be.an('array');",
+                                    "});",
+                                    "",
+                                    "// Store first variant ID",
+                                    "if (pm.response.json().data.length > 0) {",
+                                    "    pm.collectionVariables.set(\"variantId\", pm.response.json().data[0].id);",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/products/{{productId}}/variants",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "products",
+                                "{{productId}}",
+                                "variants"
+                            ]
+                        },
+                        "description": "Get all variants for a specific product."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Create Variant",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Status code is 201\", function () {",
+                                    "    pm.response.to.have.status(201);",
+                                    "});",
+                                    "",
+                                    "pm.test(\"Variant created successfully\", function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.success).to.eql(true);",
+                                    "    pm.expect(jsonData.data.id).to.exist;",
+                                    "    ",
+                                    "    // Store the new variant ID",
+                                    "    pm.collectionVariables.set(\"newVariantId\", jsonData.data.id);",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        },
+                        {
+                            "listen": "prerequest",
+                            "script": {
+                                "exec": [
+                                    "// Generate unique SKU for variant",
+                                    "const timestamp = Date.now();",
+                                    "pm.collectionVariables.set(\"uniqueVariantSKU\", `TEST-VARIANT-${timestamp}`);"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"sku\": \"{{uniqueVariantSKU}}\",\n  \"name\": \"Black - Large\",\n  \"price\": 149.99,\n  \"stockQuantity\": 50,\n  \"isActive\": true,\n  \"attributes\": []\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/products/{{productId}}/variants",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "products",
+                                "{{productId}}",
+                                "variants"
+                            ]
+                        },
+                        "description": "Create a new variant for a product.\n\n**Required fields:**\n- sku (unique)\n- name\n- stockQuantity (>= 0)\n\n**Optional:**\n- price (if null, uses product's basePrice)"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Update Variant",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Status code is 200\", function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "pm.test(\"Variant updated successfully\", function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.success).to.eql(true);",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"Black - Large (Updated)\",\n  \"price\": 139.99,\n  \"stockQuantity\": 75,\n  \"isActive\": true,\n  \"attributes\": []\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/products/{{productId}}/variants/{{newVariantId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "products",
+                                "{{productId}}",
+                                "variants",
+                                "{{newVariantId}}"
+                            ]
+                        },
+                        "description": "Update an existing variant. Uses optimistic concurrency control."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Update Stock (Decrease)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Status code is 200\", function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "pm.test(\"Stock updated successfully\", function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.success).to.eql(true);",
+                                    "    pm.expect(jsonData.data.stockQuantity).to.exist;",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"quantity\": -5\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/products/{{productId}}/variants/{{variantId}}/stock",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "products",
+                                "{{productId}}",
+                                "variants",
+                                "{{variantId}}",
+                                "stock"
+                            ]
+                        },
+                        "description": "Decrease stock quantity (e.g., after a sale).\n\nUses serializable transaction to prevent overselling. Negative quantity decreases stock."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Update Stock (Increase)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Status code is 200\", function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "pm.test(\"Stock updated successfully\", function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.success).to.eql(true);",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"quantity\": 100\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/products/{{productId}}/variants/{{variantId}}/stock",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "products",
+                                "{{productId}}",
+                                "variants",
+                                "{{variantId}}",
+                                "stock"
+                            ]
+                        },
+                        "description": "Increase stock quantity (e.g., after restocking).\n\nPositive quantity increases stock."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Delete Variant",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Status code is 200\", function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "pm.test(\"Variant deleted successfully\", function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.success).to.eql(true);",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "DELETE",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/products/{{productId}}/variants/{{newVariantId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "products",
+                                "{{productId}}",
+                                "variants",
+                                "{{newVariantId}}"
+                            ]
+                        },
+                        "description": "Delete a product variant."
+                    },
+                    "response": []
+                }
+            ],
+            "description": "Product variant management endpoints."
+        },
+        {
+            "name": "Search & Filter",
+            "item": [
+                {
+                    "name": "Search by Name",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/products?searchTerm=shirt",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "products"
+                            ],
+                            "query": [
+                                {
+                                    "key": "searchTerm",
+                                    "value": "shirt"
+                                }
+                            ]
+                        },
+                        "description": "Search products by name, SKU, or description."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Filter by Price Range",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/products?minPrice=20&maxPrice=50",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "products"
+                            ],
+                            "query": [
+                                {
+                                    "key": "minPrice",
+                                    "value": "20"
+                                },
+                                {
+                                    "key": "maxPrice",
+                                    "value": "50"
+                                }
+                            ]
+                        },
+                        "description": "Filter products by price range."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Filter Active Products",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/products?isActive=true",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "products"
+                            ],
+                            "query": [
+                                {
+                                    "key": "isActive",
+                                    "value": "true"
+                                }
+                            ]
+                        },
+                        "description": "Filter only active products."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Sort by Price (Ascending)",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/products?sortBy=price&sortDescending=false",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "products"
+                            ],
+                            "query": [
+                                {
+                                    "key": "sortBy",
+                                    "value": "price"
+                                },
+                                {
+                                    "key": "sortDescending",
+                                    "value": "false"
+                                }
+                            ]
+                        },
+                        "description": "Sort products by price in ascending order."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Combined Filters",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/products?searchTerm=shirt&minPrice=20&maxPrice=100&isActive=true&sortBy=price&sortDescending=false&page=1&pageSize=10",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "products"
+                            ],
+                            "query": [
+                                {
+                                    "key": "searchTerm",
+                                    "value": "shirt"
+                                },
+                                {
+                                    "key": "minPrice",
+                                    "value": "20"
+                                },
+                                {
+                                    "key": "maxPrice",
+                                    "value": "100"
+                                },
+                                {
+                                    "key": "isActive",
+                                    "value": "true"
+                                },
+                                {
+                                    "key": "sortBy",
+                                    "value": "price"
+                                },
+                                {
+                                    "key": "sortDescending",
+                                    "value": "false"
+                                },
+                                {
+                                    "key": "page",
+                                    "value": "1"
+                                },
+                                {
+                                    "key": "pageSize",
+                                    "value": "10"
+                                }
+                            ]
+                        },
+                        "description": "Combine multiple filters and sorting."
+                    },
+                    "response": []
+                }
+            ],
+            "description": "Search and filtering examples."
+        },
+        {
+            "name": "Validation Tests",
+            "item": [
+                {
+                    "name": "Duplicate SKU (Should Fail)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Status code is 400\", function () {",
+                                    "    pm.response.to.have.status(400);",
+                                    "});",
+                                    "",
+                                    "pm.test(\"Error message about duplicate SKU\", function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.success).to.eql(false);",
+                                    "    pm.expect(jsonData.errors).to.exist;",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"sku\": \"SHIRT-COTTON-001\",\n  \"name\": \"Duplicate Product\",\n  \"description\": \"This should fail\",\n  \"basePrice\": 29.99,\n  \"isActive\": true,\n  \"categoryIds\": [],\n  \"attributes\": [],\n  \"images\": []\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/products",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "products"
+                            ]
+                        },
+                        "description": "Test validation: Creating product with duplicate SKU should fail."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Invalid Price (Should Fail)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Status code is 400\", function () {",
+                                    "    pm.response.to.have.status(400);",
+                                    "});",
+                                    "",
+                                    "pm.test(\"Error about invalid price\", function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.success).to.eql(false);",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"sku\": \"TEST-INVALID-PRICE\",\n  \"name\": \"Invalid Price Product\",\n  \"description\": \"This should fail\",\n  \"basePrice\": -10,\n  \"isActive\": true,\n  \"categoryIds\": [],\n  \"attributes\": [],\n  \"images\": []\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/products",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "products"
+                            ]
+                        },
+                        "description": "Test validation: Negative price should fail."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Missing Required Fields (Should Fail)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Status code is 400\", function () {",
+                                    "    pm.response.to.have.status(400);",
+                                    "});",
+                                    "",
+                                    "pm.test(\"Multiple validation errors\", function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.success).to.eql(false);",
+                                    "    pm.expect(jsonData.errors).to.be.an('array');",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"sku\": \"\",\n  \"name\": \"\",\n  \"description\": \"Missing required fields\",\n  \"basePrice\": 29.99,\n  \"isActive\": true,\n  \"categoryIds\": [],\n  \"attributes\": [],\n  \"images\": []\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/products",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "products"
+                            ]
+                        },
+                        "description": "Test validation: Missing SKU and name should fail."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Oversell Stock (Should Fail)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Status code is 400\", function () {",
+                                    "    pm.response.to.have.status(400);",
+                                    "});",
+                                    "",
+                                    "pm.test(\"Error about insufficient stock\", function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.success).to.eql(false);",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"quantity\": -10000\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/products/{{productId}}/variants/{{variantId}}/stock",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "products",
+                                "{{productId}}",
+                                "variants",
+                                "{{variantId}}",
+                                "stock"
+                            ]
+                        },
+                        "description": "Test validation: Trying to decrease stock below zero should fail."
+                    },
+                    "response": []
+                }
+            ],
+            "description": "Validation and error handling tests."
+        },
+        {
+            "name": "Edge Cases",
+            "item": [
+                {
+                    "name": "Get Non-Existent Product (404)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Status code is 404\", function () {",
+                                    "    pm.response.to.have.status(404);",
+                                    "});",
+                                    "",
+                                    "pm.test(\"Error response\", function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.success).to.eql(false);",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/products/00000000-0000-0000-0000-000000000000",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "products",
+                                "00000000-0000-0000-0000-000000000000"
+                            ]
+                        },
+                        "description": "Test edge case: Non-existent product should return 404."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Large Page Size (Capped at 100)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Status code is 200\", function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "pm.test(\"Page size capped at 100\", function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.metadata.pageSize).to.be.at.most(100);",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/products?pageSize=1000",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "products"
+                            ],
+                            "query": [
+                                {
+                                    "key": "pageSize",
+                                    "value": "1000"
+                                }
+                            ]
+                        },
+                        "description": "Test edge case: Page size should be capped at 100."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Invalid Page Number (Adjusted to 1)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Status code is 200\", function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "pm.test(\"Page adjusted to 1\", function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.metadata.page).to.eql(1);",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/products?page=0",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "products"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "0"
+                                }
+                            ]
+                        },
+                        "description": "Test edge case: Invalid page number should be adjusted to 1."
+                    },
+                    "response": []
+                }
+            ],
+            "description": "Edge case testing."
+        }
+    ],
+    "event": [
+        {
+            "listen": "prerequest",
+            "script": {
+                "type": "text/javascript",
+                "exec": [
+                    ""
+                ]
+            }
+        },
+        {
+            "listen": "test",
+            "script": {
+                "type": "text/javascript",
+                "exec": [
+                    ""
+                ]
+            }
+        }
+    ],
+    "variable": [
+        {
+            "key": "baseUrl",
+            "value": "https://localhost:7001",
+            "type": "string"
+        },
+        {
+            "key": "productId",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "variantId",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "categoryId",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "newProductId",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "newVariantId",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "uniqueSKU",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "uniqueVariantSKU",
+            "value": "",
+            "type": "string"
+        }
+    ]
+}
