@@ -1,21 +1,12 @@
 using Microsoft.EntityFrameworkCore;
 using WebApplication01.Application.DTOs;
 using WebApplication01.Application.DTOs.Products;
+using WebApplication01.Application.Interfaces;
 using WebApplication01.Domain.Entities;
 using WebApplication01.Infrastructure.Caching;
 using WebApplication01.Infrastructure.Data;
 
 namespace WebApplication01.Application.Services;
-
-public interface IProductService
-{
-    Task<PagedResponse<ProductSummaryDto>> GetProductsAsync(ProductQueryParameters parameters);
-    Task<ApiResponse<ProductDto>> GetProductByIdAsync(Guid id);
-    Task<ApiResponse<ProductDto>> GetProductBySkuAsync(string sku);
-    Task<ApiResponse<ProductDto>> CreateProductAsync(CreateProductRequest request);
-    Task<ApiResponse<ProductDto>> UpdateProductAsync(Guid id, UpdateProductRequest request);
-    Task<ApiResponse<bool>> DeleteProductAsync(Guid id);
-}
 
 public class ProductService : IProductService
 {

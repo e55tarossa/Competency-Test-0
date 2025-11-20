@@ -2,6 +2,7 @@ using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using WebApplication01.Application.DTOs;
 using WebApplication01.Application.DTOs.Products;
+using WebApplication01.Application.Interfaces;
 using WebApplication01.Application.Services;
 
 namespace WebApplication01.Controllers;

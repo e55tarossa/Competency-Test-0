@@ -2,6 +2,7 @@ using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.EntityFrameworkCore;
 using StackExchange.Redis;
+using WebApplication01.Application.Interfaces;
 using WebApplication01.Application.Services;
 using WebApplication01.Application.Validators;
 using WebApplication01.Infrastructure.Caching;
@@ -50,7 +51,7 @@ builder.Services.AddSwaggerGen(options =>
     {
         Title = "Product Management API",
         Version = "v1",
-        Description = "E-commerce Product Management System with strong consistency and scalability",
+        Description = "E-commerce Product Management",
         Contact = new Microsoft.OpenApi.Models.OpenApiContact
         {
             Name = "Development Team"

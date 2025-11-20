@@ -1,20 +1,12 @@
 using Microsoft.EntityFrameworkCore;
 using WebApplication01.Application.DTOs;
 using WebApplication01.Application.DTOs.Products;
+using WebApplication01.Application.Interfaces;
 using WebApplication01.Domain.Entities;
 using WebApplication01.Infrastructure.Caching;
 using WebApplication01.Infrastructure.Data;
 
 namespace WebApplication01.Application.Services;
-
-public interface IProductVariantService
-{
-    Task<ApiResponse<List<ProductVariantDto>>> GetVariantsByProductIdAsync(Guid productId);
-    Task<ApiResponse<ProductVariantDto>> CreateVariantAsync(Guid productId, CreateProductVariantRequest request);
-    Task<ApiResponse<ProductVariantDto>> UpdateVariantAsync(Guid productId, Guid variantId, UpdateProductVariantRequest request);
-    Task<ApiResponse<bool>> DeleteVariantAsync(Guid productId, Guid variantId);
-    Task<ApiResponse<ProductVariantDto>> UpdateStockAsync(Guid productId, Guid variantId, int quantity);
-}
 
 public class ProductVariantService : IProductVariantService
 {
