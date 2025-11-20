@@ -34,9 +34,9 @@ builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
 });
 builder.Services.AddSingleton<ICacheService, RedisCacheService>();
 
-// Configure FluentValidation
-builder.Services.AddFluentValidationAutoValidation();
+// Configure FluentValidation (manual validation in controllers due to async rules)
 builder.Services.AddValidatorsFromAssemblyContaining<CreateProductRequestValidator>();
+
 
 // Register application services
 builder.Services.AddScoped<IProductService, ProductService>();

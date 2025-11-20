@@ -1,3 +1,4 @@
+using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using WebApplication01.Application.DTOs;
 using WebApplication01.Application.DTOs.Products;
@@ -12,11 +13,22 @@ public class ProductsController : ControllerBase
 {
     private readonly IProductService _productService;
     private readonly IProductVariantService _variantService;
+    private readonly IValidator<CreateProductRequest> _createProductValidator;
+    private readonly IValidator<UpdateProductRequest> _updateProductValidator;
+    private readonly IValidator<CreateProductVariantRequest> _createVariantValidator;
     
-    public ProductsController(IProductService productService, IProductVariantService variantService)
+    public ProductsController(
+        IProductService productService, 
+        IProductVariantService variantService,
+        IValidator<CreateProductRequest> createProductValidator,
+        IValidator<UpdateProductRequest> updateProductValidator,
+        IValidator<CreateProductVariantRequest> createVariantValidator)
     {
         _productService = productService;
         _variantService = variantService;
+        _createProductValidator = createProductValidator;
+        _updateProductValidator = updateProductValidator;
+        _createVariantValidator = createVariantValidator;
     }
     
     /// <summary>
@@ -74,11 +86,13 @@ public class ProductsController : ControllerBase
     [ProducesResponseType(typeof(ApiResponse<ProductDto>), StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<ApiResponse<ProductDto>>> CreateProduct([FromBody] CreateProductRequest request)
     {
-        if (!ModelState.IsValid)
+        // Manual validation with FluentValidation (supports async rules)
+        var validationResult = await _createProductValidator.ValidateAsync(request);
+        
+        if (!validationResult.IsValid)
         {
-            var errors = ModelState.Values
-                .SelectMany(v => v.Errors)
-                .Select(e => new ErrorDetail { Field = "Validation", Message = e.ErrorMessage })
+            var errors = validationResult.Errors
+                .Select(e => new ErrorDetail { Field = e.PropertyName, Message = e.ErrorMessage })
                 .ToList();
             
             return BadRequest(ApiResponse<ProductDto>.ErrorResponse(errors));
@@ -104,11 +118,13 @@ public class ProductsController : ControllerBase
     [ProducesResponseType(typeof(ApiResponse<ProductDto>), StatusCodes.Status409Conflict)]
     public async Task<ActionResult<ApiResponse<ProductDto>>> UpdateProduct(Guid id, [FromBody] UpdateProductRequest request)
     {
-        if (!ModelState.IsValid)
+        // Manual validation with FluentValidation
+        var validationResult = await _updateProductValidator.ValidateAsync(request);
+        
+        if (!validationResult.IsValid)
         {
-            var errors = ModelState.Values
-                .SelectMany(v => v.Errors)
-                .Select(e => new ErrorDetail { Field = "Validation", Message = e.ErrorMessage })
+            var errors = validationResult.Errors
+                .Select(e => new ErrorDetail { Field = e.PropertyName, Message = e.ErrorMessage })
                 .ToList();
             
             return BadRequest(ApiResponse<ProductDto>.ErrorResponse(errors));
@@ -179,11 +195,13 @@ public class ProductsController : ControllerBase
     [ProducesResponseType(typeof(ApiResponse<ProductVariantDto>), StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ApiResponse<ProductVariantDto>>> CreateVariant(Guid productId, [FromBody] CreateProductVariantRequest request)
     {
-        if (!ModelState.IsValid)
+        // Manual validation with FluentValidation
+        var validationResult = await _createVariantValidator.ValidateAsync(request);
+        
+        if (!validationResult.IsValid)
         {
-            var errors = ModelState.Values
-                .SelectMany(v => v.Errors)
-                .Select(e => new ErrorDetail { Field = "Validation", Message = e.ErrorMessage })
+            var errors = validationResult.Errors
+                .Select(e => new ErrorDetail { Field = e.PropertyName, Message = e.ErrorMessage })
                 .ToList();
             
             return BadRequest(ApiResponse<ProductVariantDto>.ErrorResponse(errors));
@@ -217,16 +235,6 @@ public class ProductsController : ControllerBase
         Guid variantId, 
         [FromBody] UpdateProductVariantRequest request)
     {
-        if (!ModelState.IsValid)
-        {
-            var errors = ModelState.Values
-                .SelectMany(v => v.Errors)
-                .Select(e => new ErrorDetail { Field = "Validation", Message = e.ErrorMessage })
-                .ToList();
-            
-            return BadRequest(ApiResponse<ProductVariantDto>.ErrorResponse(errors));
-        }
-        
         var result = await _variantService.UpdateVariantAsync(productId, variantId, request);
         
         if (!result.Success)
