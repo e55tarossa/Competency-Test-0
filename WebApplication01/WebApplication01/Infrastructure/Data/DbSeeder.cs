@@ -106,7 +106,7 @@ public static class DbSeeder
         {
             Id = Guid.NewGuid(),
             ProductId = product1.Id,
-            ImageUrl = "https://via.placeholder.com/500x500?text=Cotton+T-Shirt",
+            ImageUrl = "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?fm=jpg&q=60&w=3000&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8cHJvZHVjdHxlbnwwfHwwfHx8MA%3D%3D",
             AltText = "Classic Cotton T-Shirt",
             DisplayOrder = 0,
             IsPrimary = true
@@ -200,7 +200,7 @@ public static class DbSeeder
         {
             Id = Guid.NewGuid(),
             ProductId = product2.Id,
-            ImageUrl = "https://via.placeholder.com/500x500?text=Polo+Shirt",
+            ImageUrl = "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?fm=jpg&q=60&w=3000&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8cHJvZHVjdHxlbnwwfHwwfHx8MA%3D%3D",
             AltText = "Premium Polo Shirt",
             DisplayOrder = 0,
             IsPrimary = true
