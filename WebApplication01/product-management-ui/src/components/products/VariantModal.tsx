@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Plus, Trash2, Edit, Save, X, Package } from 'lucide-react';
+import { Save, X, Package } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { productApi } from '../../services/product.service';
 import { useToastStore } from '../../store/toast.store';
@@ -39,7 +39,6 @@ const VariantModal: React.FC<VariantModalProps> = ({ product, isOpen, onClose })
         register,
         handleSubmit,
         reset,
-        setValue,
         formState: { errors },
     } = useForm<VariantFormData>({
         resolver: zodResolver(variantSchema),
@@ -76,17 +75,6 @@ const VariantModal: React.FC<VariantModalProps> = ({ product, isOpen, onClose })
         },
     });
 
-    const deleteMutation = useMutation({
-        mutationFn: (variantId: string) => productApi.deleteVariant(product!.id, variantId),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['products'] });
-            addToast({ type: 'success', message: 'Variant deleted successfully' });
-        },
-        onError: (error) => {
-            addToast({ type: 'error', message: error.message || 'Failed to delete variant' });
-        },
-    });
-
     const onSubmit = (data: VariantFormData) => {
         const payload = {
             ...data,
@@ -103,16 +91,6 @@ const VariantModal: React.FC<VariantModalProps> = ({ product, isOpen, onClose })
         } else {
             createMutation.mutate(payload as CreateVariantRequest);
         }
-    };
-
-    const handleEdit = (variant: ProductVariant) => {
-        setEditingVariant(variant);
-        setIsAdding(false);
-        setValue('sku', variant.sku);
-        setValue('name', variant.name);
-        setValue('price', variant.price?.toString() || '');
-        setValue('stockQuantity', variant.stockQuantity.toString());
-        setValue('isActive', variant.isActive);
     };
 
     const handleCancel = () => {
@@ -137,21 +115,7 @@ const VariantModal: React.FC<VariantModalProps> = ({ product, isOpen, onClose })
                 {/* List of Variants */}
                 {!isAdding && !editingVariant && (
                     <div className="space-y-4">
-                        <div className="flex justify-end">
-                            <Button
-                                variant="primary"
-                                size="sm"
-                                onClick={() => {
-                                    setIsAdding(true);
-                                    reset({ isActive: true, stockQuantity: '0' });
-                                }}
-                                leftIcon={<Plus className="w-4 h-4" />}
-                            >
-                                Add Variant
-                            </Button>
-                        </div>
-
-                        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+                        <div className="bg-slate-700 dark:bg-slate-800 rounded-xl border border-slate-600 dark:border-gray-700 overflow-hidden">
                             <table className="w-full">
                                 <thead className="bg-gray-50 dark:bg-gray-900/50">
                                     <tr>
@@ -160,19 +124,18 @@ const VariantModal: React.FC<VariantModalProps> = ({ product, isOpen, onClose })
                                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Price</th>
                                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Stock</th>
                                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Status</th>
-                                        <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                                     {product.variants && product.variants.length > 0 ? (
                                         product.variants.map((variant) => (
-                                            <tr key={variant.id} className="group hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
-                                                <td className="px-4 py-3 text-sm font-mono text-gray-900 dark:text-gray-100">{variant.sku}</td>
-                                                <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">{variant.name}</td>
-                                                <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">
+                                            <tr key={variant.id} className="hover:bg-slate-600/30 dark:hover:bg-gray-800/50 transition-colors">
+                                                <td className="px-4 py-3 text-sm font-mono text-gray-100 dark:text-gray-100">{variant.sku}</td>
+                                                <td className="px-4 py-3 text-sm text-gray-100 dark:text-gray-100">{variant.name}</td>
+                                                <td className="px-4 py-3 text-sm text-gray-100 dark:text-gray-100">
                                                     {variant.price ? formatCurrency(variant.price) : '-'}
                                                 </td>
-                                                <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">
+                                                <td className="px-4 py-3 text-sm text-gray-100 dark:text-gray-100">
                                                     <Badge variant={variant.stockQuantity > 0 ? 'default' : 'danger'}>
                                                         {variant.stockQuantity}
                                                     </Badge>
@@ -182,31 +145,11 @@ const VariantModal: React.FC<VariantModalProps> = ({ product, isOpen, onClose })
                                                         {variant.isActive ? 'Active' : 'Inactive'}
                                                     </Badge>
                                                 </td>
-                                                <td className="px-4 py-3 text-right">
-                                                    <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="sm"
-                                                            onClick={() => handleEdit(variant)}
-                                                            className="h-8 w-8 p-0"
-                                                        >
-                                                            <Edit className="w-4 h-4 text-amber-600" />
-                                                        </Button>
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="sm"
-                                                            onClick={() => deleteMutation.mutate(variant.id)}
-                                                            className="h-8 w-8 p-0"
-                                                        >
-                                                            <Trash2 className="w-4 h-4 text-red-600" />
-                                                        </Button>
-                                                    </div>
-                                                </td>
                                             </tr>
                                         ))
                                     ) : (
                                         <tr>
-                                            <td colSpan={6} className="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
+                                            <td colSpan={5} className="px-4 py-8 text-center text-gray-400 dark:text-gray-400">
                                                 <div className="flex flex-col items-center justify-center gap-2">
                                                     <Package className="w-8 h-8 opacity-50" />
                                                     <p>No variants found</p>
@@ -222,7 +165,7 @@ const VariantModal: React.FC<VariantModalProps> = ({ product, isOpen, onClose })
 
                 {/* Add/Edit Form */}
                 {(isAdding || editingVariant) && (
-                    <form onSubmit={handleSubmit(onSubmit)} className="bg-gray-50 dark:bg-gray-900/50 p-6 rounded-xl border border-gray-200 dark:border-gray-700 space-y-4 animate-fade-in">
+                    <form onSubmit={handleSubmit(onSubmit)} className="bg-slate-700/50 dark:bg-slate-800/50 p-6 rounded-xl border border-slate-600 dark:border-gray-700 space-y-4 animate-fade-in">
                         <div className="flex items-center justify-between mb-4">
                             <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">
                                 {isAdding ? 'Add New Variant' : 'Edit Variant'}

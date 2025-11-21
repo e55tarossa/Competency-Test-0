@@ -74,7 +74,7 @@ const Modal: React.FC<ModalProps> = ({
         >
             <div
                 className={cn(
-                    'relative w-full bg-white dark:bg-gray-800 rounded-2xl shadow-2xl animate-slide-up',
+                    'relative w-full bg-slate-800 dark:bg-slate-900 rounded-2xl shadow-2xl animate-slide-up',
                     'max-h-[90vh] flex flex-col',
                     sizes[size]
                 )}
