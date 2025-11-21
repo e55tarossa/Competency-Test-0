@@ -30,9 +30,7 @@ function App() {
                   <h1 className="text-xl font-bold text-white">
                     Product Management
                   </h1>
-                  <p className="text-xs text-blue-200">
-                    Enterprise Solution
-                  </p>
+
                 </div>
               </div>
             </div>

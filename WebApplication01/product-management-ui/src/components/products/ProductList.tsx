@@ -371,7 +371,7 @@ const ProductList: React.FC = () => {
             {/* Modals */}
             {(createModalOpen || editModalOpen) && (
                 <ProductForm
-                    product={editModalOpen ? selectedProduct || undefined : undefined}
+                    productId={selectedProduct?.id}
                     onClose={() => {
                         setCreateModalOpen(false);
                         setEditModalOpen(false);

@@ -22,10 +22,14 @@ public class ProductSummaryDto
     public Guid Id { get; set; }
     public string SKU { get; set; } = null!;
     public string Name { get; set; } = null!;
+    public string Description { get; set; } = null!;
     public decimal BasePrice { get; set; }
     public bool IsActive { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime UpdatedAt { get; set; }
     public string? PrimaryImageUrl { get; set; }
     public string? PrimaryCategoryName { get; set; }
+    public List<ProductVariantDto> Variants { get; set; } = new();
 }
 
 public class CategoryDto

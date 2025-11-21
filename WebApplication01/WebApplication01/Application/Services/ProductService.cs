@@ -78,8 +78,11 @@ public class ProductService : IProductService
                 : query.OrderBy(p => p.CreatedAt)
         };
         
-        // Apply pagination
+        // Apply pagination and include variants
         var products = await query
+            .Include(p => p.Variants)
+                .ThenInclude(v => v.VariantAttributes)
+                    .ThenInclude(va => va.Attribute)
             .Skip((parameters.Page - 1) * parameters.PageSize)
             .Take(parameters.PageSize)
             .Select(p => new ProductSummaryDto
@@ -87,8 +90,11 @@ public class ProductService : IProductService
                 Id = p.Id,
                 SKU = p.SKU,
                 Name = p.Name,
+                Description = p.Description ?? string.Empty,
                 BasePrice = p.BasePrice,
                 IsActive = p.IsActive,
+                CreatedAt = p.CreatedAt,
+                UpdatedAt = p.UpdatedAt,
                 PrimaryImageUrl = p.Images.FirstOrDefault(i => i.IsPrimary) != null 
                     ? p.Images.First(i => i.IsPrimary).ImageUrl 
                     : p.Images.OrderBy(i => i.DisplayOrder).FirstOrDefault() != null
@@ -98,7 +104,22 @@ public class ProductService : IProductService
                     ? p.ProductCategories.First(pc => pc.IsPrimary).Category.Name
                     : p.ProductCategories.FirstOrDefault() != null
                         ? p.ProductCategories.First().Category.Name
-                        : null
+                        : null,
+                Variants = p.Variants.Select(v => new ProductVariantDto
+                {
+                    Id = v.Id,
+                    SKU = v.SKU,
+                    Name = v.Name,
+                    Price = v.Price ?? p.BasePrice,
+                    StockQuantity = v.StockQuantity,
+                    IsActive = v.IsActive,
+                    Attributes = v.VariantAttributes.Select(va => new VariantAttributeDto
+                    {
+                        AttributeId = va.AttributeId,
+                        AttributeName = va.Attribute.Name,
+                        Value = va.Value
+                    }).ToList()
+                }).ToList()
             })
             .ToListAsync();
         
