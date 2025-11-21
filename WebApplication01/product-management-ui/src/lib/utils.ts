@@ -12,6 +12,7 @@ export function cn(...inputs: ClassValue[]) {
  * Format currency value
  */
 export function formatCurrency(value: number, currency: string = 'USD'): string {
+    if (value === undefined || value === null || isNaN(value)) return '$0.00';
     return new Intl.NumberFormat('en-US', {
         style: 'currency',
         currency,
@@ -22,11 +23,15 @@ export function formatCurrency(value: number, currency: string = 'USD'): string 
  * Format date to readable string
  */
 export function formatDate(date: string | Date): string {
+    if (!date) return 'N/A';
+    const d = new Date(date);
+    if (isNaN(d.getTime())) return 'Invalid Date';
+
     return new Intl.DateTimeFormat('en-US', {
         year: 'numeric',
         month: 'short',
         day: 'numeric',
-    }).format(new Date(date));
+    }).format(d);
 }
 
 /**
@@ -194,4 +199,16 @@ export function formatFileSize(bytes: number): string {
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+}
+
+/**
+ * Convert file to Base64 string
+ */
+export function convertFileToBase64(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = (error) => reject(error);
+    });
 }

@@ -51,10 +51,9 @@ export const productApi = {
         const response = await apiClient.delete<ApiResponse<void>>(`${BASE_PATH}/${id}`);
         return response.data;
     },
-};
 
-// Product Variant API
-export const variantApi = {
+    // --- Variant Methods ---
+
     // Get all variants for a product
     getVariants: async (productId: string): Promise<ApiResponse<ProductVariant[]>> => {
         const response = await apiClient.get<ApiResponse<ProductVariant[]>>(

@@ -219,65 +219,71 @@ public class ProductVariantService : IProductVariantService
     
     public async Task<ApiResponse<ProductVariantDto>> UpdateStockAsync(Guid productId, Guid variantId, int quantity)
     {
-        // Use serializable transaction for stock updates to prevent race conditions
-        using var transaction = await _context.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable);
+        // Use execution strategy to wrap the transaction for retry logic compatibility
+        var strategy = _context.Database.CreateExecutionStrategy();
         
-        try
+        return await strategy.ExecuteAsync(async () =>
         {
-            var variant = await _context.ProductVariants
-                .Include(v => v.Product)
-                .Include(v => v.VariantAttributes)
-                    .ThenInclude(va => va.Attribute)
-                .FirstOrDefaultAsync(v => v.Id == variantId && v.ProductId == productId);
+            // Use serializable transaction for stock updates to prevent race conditions
+            using var transaction = await _context.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable);
             
-            if (variant == null)
+            try
             {
-                return ApiResponse<ProductVariantDto>.ErrorResponse("VariantId", "Variant not found");
-            }
-            
-            // Validate stock quantity
-            if (quantity < 0 && Math.Abs(quantity) > variant.StockQuantity)
-            {
-                return ApiResponse<ProductVariantDto>.ErrorResponse("Quantity", "Insufficient stock");
-            }
-            
-            variant.StockQuantity += quantity;
-            
-            await _context.SaveChangesAsync();
-            await transaction.CommitAsync();
-            
-            var dto = new ProductVariantDto
-            {
-                Id = variant.Id,
-                SKU = variant.SKU,
-                Name = variant.Name,
-                Price = variant.Price ?? variant.Product.BasePrice,
-                StockQuantity = variant.StockQuantity,
-                IsActive = variant.IsActive,
-                Attributes = variant.VariantAttributes.Select(va => new VariantAttributeDto
+                var variant = await _context.ProductVariants
+                    .Include(v => v.Product)
+                    .Include(v => v.VariantAttributes)
+                        .ThenInclude(va => va.Attribute)
+                    .FirstOrDefaultAsync(v => v.Id == variantId && v.ProductId == productId);
+                
+                if (variant == null)
                 {
-                    AttributeId = va.Attribute.Id,
-                    AttributeName = va.Attribute.Name,
-                    Value = va.Value
-                }).ToList()
-            };
-            
-            // Invalidate cache
-            await InvalidateProductCache(productId);
-            
-            return ApiResponse<ProductVariantDto>.SuccessResponse(dto);
-        }
-        catch (DbUpdateConcurrencyException)
-        {
-            await transaction.RollbackAsync();
-            return ApiResponse<ProductVariantDto>.ErrorResponse("Concurrency", 
-                "Stock was modified by another user. Please refresh and try again.");
-        }
-        catch
-        {
-            await transaction.RollbackAsync();
-            throw;
-        }
+                    return ApiResponse<ProductVariantDto>.ErrorResponse("VariantId", "Variant not found");
+                }
+                
+                // Validate stock quantity
+                if (quantity < 0 && Math.Abs(quantity) > variant.StockQuantity)
+                {
+                    return ApiResponse<ProductVariantDto>.ErrorResponse("Quantity", "Insufficient stock");
+                }
+                
+                variant.StockQuantity += quantity;
+                
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+                
+                var dto = new ProductVariantDto
+                {
+                    Id = variant.Id,
+                    SKU = variant.SKU,
+                    Name = variant.Name,
+                    Price = variant.Price ?? variant.Product.BasePrice,
+                    StockQuantity = variant.StockQuantity,
+                    IsActive = variant.IsActive,
+                    Attributes = variant.VariantAttributes.Select(va => new VariantAttributeDto
+                    {
+                        AttributeId = va.Attribute.Id,
+                        AttributeName = va.Attribute.Name,
+                        Value = va.Value
+                    }).ToList()
+                };
+                
+                // Invalidate cache
+                await InvalidateProductCache(productId);
+                
+                return ApiResponse<ProductVariantDto>.SuccessResponse(dto);
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                await transaction.RollbackAsync();
+                return ApiResponse<ProductVariantDto>.ErrorResponse("Concurrency", 
+                    "Stock was modified by another user. Please refresh and try again.");
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+        });
     }
     
     private async Task InvalidateProductCache(Guid productId)

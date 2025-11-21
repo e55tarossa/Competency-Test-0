@@ -42,6 +42,7 @@ builder.Services.AddValidatorsFromAssemblyContaining<CreateProductRequestValidat
 // Register application services
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IProductVariantService, ProductVariantService>();
+builder.Services.AddScoped<ICategoryService, CategoryService>();
 
 // Configure Swagger/OpenAPI
 builder.Services.AddEndpointsApiExplorer();
@@ -99,7 +100,7 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-app.UseHttpsRedirection();
+// app.UseHttpsRedirection(); testing 
 
 app.UseCors("AllowAll");
 

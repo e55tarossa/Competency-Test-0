@@ -49,16 +49,16 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
                         type={type}
                         className={cn(
                             'w-full px-4 py-2.5 rounded-lg border transition-all duration-200',
-                            'bg-white dark:bg-gray-800',
-                            'text-gray-900 dark:text-gray-100',
+                            'bg-gray-900/50 dark:bg-gray-800/50 backdrop-blur-sm',
+                            'text-gray-100 dark:text-gray-100',
                             'placeholder:text-gray-400 dark:placeholder:text-gray-500',
-                            'focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent',
+                            'focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50',
                             error
-                                ? 'border-red-300 focus:ring-red-500'
-                                : 'border-gray-300 dark:border-gray-600',
+                                ? 'border-red-500/50 focus:ring-red-500/50'
+                                : 'border-gray-700/50 dark:border-gray-600/50 hover:border-gray-600/50',
                             leftIcon && 'pl-10',
                             rightIcon && 'pr-10',
-                            props.disabled && 'opacity-50 cursor-not-allowed bg-gray-50 dark:bg-gray-900',
+                            props.disabled && 'opacity-50 cursor-not-allowed bg-gray-900/30 dark:bg-gray-900/30',
                             className
                         )}
                         {...props}
